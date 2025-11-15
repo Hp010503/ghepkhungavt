@@ -8,9 +8,6 @@ const xSlider = document.getElementById('xSlider');
 const ySlider = document.getElementById('ySlider');
 const historyGrid = document.getElementById('history-grid');
 const noHistoryMessage = document.getElementById('no-history-message');
-
-// VỊ TRÍ SỬA: Thêm hằng số và phần tử mới
-// MỤC ĐÍCH: Quản lý giới hạn file, chỉ báo tải và tối ưu hóa việc vẽ
 const loadingOverlay = document.getElementById('loading-overlay');
 
 // Hằng số cho localStorage và ảnh thu nhỏ (Thumbnail)
@@ -66,8 +63,7 @@ const drawCanvas = () => {
 };
 
 /**
- * VỊ TRÍ SỬA: Thêm hàm update loop
- * MỤC ĐÍCH: Tối ưu hiệu suất. Chỉ vẽ lại canvas khi cần thiết và đồng bộ với tần số làm tươi của màn hình.
+ * Vòng lặp cập nhật để tối ưu hiệu suất vẽ.
  */
 const updateLoop = () => {
     if (needsRedraw) {
@@ -125,7 +121,7 @@ const updateSliders = () => {
     xSlider.value = imageX;
     ySlider.min = -maxOffsetY; 
     ySlider.max = maxOffsetY; 
-    ySlider.value = -imageY; 
+    ySlider.value = imageY; 
 };
 
 /**
@@ -179,28 +175,33 @@ const renderHistory = () => {
     }
 };
 
+// VỊ TRÍ SỬA: Thêm hàm mới để điều chỉnh kích thước slider
+// MỤC ĐÍCH: Sửa lỗi hiển thị thanh trượt dọc bằng cách đặt chiều dài của nó bằng chiều cao của canvas.
+const adjustVerticalSliderSize = () => {
+    const canvasHeight = canvas.clientHeight;
+    ySlider.style.width = `${canvasHeight}px`;
+};
+
 // --- GẮN CÁC SỰ KIỆN VÀO CÁC PHẦN TỬ GIAO DIỆN ---
 
 imageLoader.addEventListener('change', (e) => {
     const file = e.target.files[0];
     if (file) {
-        // VỊ TRÍ SỬA: Thêm kiểm tra kích thước file và hiển thị loading
-        // MỤC ĐÍCH: Ngăn tải file quá lớn, cung cấp phản hồi cho người dùng.
         if (file.size > MAX_FILE_SIZE_BYTES) {
             alert(`Kích thước file quá lớn. Vui lòng chọn ảnh nhỏ hơn ${MAX_FILE_SIZE_MB}MB.`);
-            e.target.value = null; // Reset input để người dùng có thể chọn lại
+            e.target.value = null; 
             return;
         }
 
-        loadingOverlay.style.display = 'flex'; // Hiển thị chỉ báo tải
+        loadingOverlay.style.display = 'flex'; 
 
         const reader = new FileReader();
         reader.onload = (event) => {
             userImage = new Image();
             userImage.onload = () => {
                 resetImageState();
-                requestRedraw(); // Yêu cầu vẽ lại
-                loadingOverlay.style.display = 'none'; // Ẩn chỉ báo tải khi xong
+                requestRedraw(); 
+                loadingOverlay.style.display = 'none'; 
             };
             userImage.src = event.target.result;
         };
@@ -208,8 +209,6 @@ imageLoader.addEventListener('change', (e) => {
     }
 });
 
-// VỊ TRÍ SỬA: Tối ưu hóa các sự kiện của slider
-// MỤC ĐÍCH: Thay vì vẽ lại trực tiếp, chỉ cập nhật giá trị và yêu cầu vẽ lại qua requestAnimationFrame.
 zoomSlider.addEventListener('input', () => {
     if (!userImage) return;
     imageScale = parseFloat(zoomSlider.value);
@@ -230,15 +229,13 @@ xSlider.addEventListener('input', () => {
 
 ySlider.addEventListener('input', () => {
     if (!userImage) return;
-    imageY = -parseFloat(ySlider.value); 
+    imageY = parseFloat(ySlider.value); 
     requestRedraw();
 });
 
 mainDownloadButton.addEventListener('click', () => {
     if (!userImage) {
         alert("Vui lòng chọn một ảnh trước khi tải xuống!");
-        // VỊ TRÍ SỬA: Thêm return
-        // MỤC ĐÍCH: Ngăn không cho hàm tiếp tục thực thi và tạo thumbnail trống.
         return; 
     }
 
@@ -262,13 +259,20 @@ mainDownloadButton.addEventListener('click', () => {
     document.body.removeChild(link);
 });
 
+// VỊ TRÍ SỬA: Thêm Event Listener cho sự kiện resize
+// MỤC ĐÍCH: Đảm bảo thanh trượt dọc luôn được cập nhật kích thước khi cửa sổ thay đổi.
+window.addEventListener('resize', adjustVerticalSliderSize);
+
 // Chạy lần đầu khi trang và các ảnh mặc định đã tải xong
 Promise.all([
     new Promise(resolve => backgroundImage.onload = resolve),
     new Promise(resolve => frameImage.onload = resolve)
 ]).then(() => {
     updateSliders();
-    requestRedraw(); // Yêu cầu vẽ lại lần đầu
+    requestRedraw(); 
     renderHistory();
-    updateLoop(); // Bắt đầu vòng lặp cập nhật
+    // VỊ TRÍ SỬA: Gọi hàm để đặt kích thước ban đầu cho thanh trượt
+    // MỤC ĐÍCH: Thiết lập kích thước đúng cho thanh trượt ngay khi trang tải xong.
+    adjustVerticalSliderSize();
+    updateLoop(); 
 });
