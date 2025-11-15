@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tạo Avatar với Khung</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Tạo Avatar của bạn</h1>
+        <p>Kéo để di chuyển, dùng thanh trượt để phóng to/thu nhỏ.</p>
+
+        <!-- Khu vực hiển thị và tương tác -->
+        <canvas id="avatarCanvas" width="2000" height="2000"></canvas>
+
+        <div class="controls">
+            <!-- Nút chọn ảnh tùy chỉnh -->
+            <input type="file" id="imageLoader" name="imageLoader" accept="image/*"/>
+            <label for="imageLoader" class="button">Chọn ảnh</label>
+
+            <!-- Thanh trượt điều khiển phóng to/thu nhỏ -->
+            <div class="zoom-control">
+                <label for="zoomSlider">Phóng to:</label>
+                <input type="range" id="zoomSlider" min="1" max="3" value="1" step="0.01">
+            </div>
+
+            <!-- Nút tải ảnh kết quả -->
+            <a id="downloadButton" class="button" download="avatar-cua-ban.png">Tải xuống Avatar</a>
+        </div>
+    </div>
+
+    <!-- Liên kết tới tệp JavaScript -->
+    <script src="script.js"></script>
+</body>
+</html>
